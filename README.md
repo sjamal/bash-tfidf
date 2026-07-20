@@ -1,8 +1,38 @@
 # Bash TF-IDF
 
-Map-reduce style bash scripts for computing TF-IDF (Term Frequency–Inverse Document Frequency) scores from plain-text corpora. Implemented using standard Unix tools with no external dependencies.
+TF-IDF (Term Frequency–Inverse Document Frequency) scoring pipeline implemented in pure bash using standard Unix tools. No Python, no Java, no dependencies — just `awk`, `sort`, and `tr`.
 
-Pipeline design adapted from Hadoop Streaming patterns.
+The pipeline follows a map-reduce pattern adapted from classic Hadoop Streaming examples. It demonstrates that the core of a distributed text indexing system can be expressed as a handful of composable Unix filters — making it equally useful as a learning tool and a lightweight production utility.
+
+## Background
+
+TF-IDF is foundational to information retrieval and search engines. It ranks terms by how distinctive they are to a specific document relative to the entire corpus — common words score low, rare but document-specific words score high.
+
+The map-reduce decomposition used here mirrors how systems like Hadoop Streaming processed text at scale: each stage is a stateless filter operating on sorted key-value pairs piped between mappers and reducers. Running this pipeline locally is a practical way to understand both the algorithm and the distributed computing pattern without any cluster infrastructure.
+
+**Formula:** $\text{tf-idf}(t, d) = tf(t, d) \times \log\left(\frac{N}{df(t)}\right)$
+
+- $tf(t, d)$ — frequency of term $t$ in document $d$
+- $df(t)$ — number of documents containing term $t$
+- $N$ — total number of documents in the corpus
+
+## Use Cases
+
+- **Search indexing** — rank terms by relevance across a document collection
+- **Keyword extraction** — identify the most distinctive terms per document
+- **Text classification preprocessing** — generate TF-IDF feature vectors for downstream ML
+- **Log analysis** — surface unusual terms in log files that stand out against a baseline corpus
+- **Learning tool** — understand TF-IDF and map-reduce in a minimal, readable implementation
+- **Teaching** — demonstrate Unix pipeline composition and functional data processing
+
+## Pipeline Overview
+
+```
+documents → tf.sh → sort → reduce-tf.sh → term frequencies
+documents → df.sh  → sort → reduce-df.sh → document frequencies
+                                         ↘
+                                       tf-idf.sh → ranked scores
+```
 
 ## Workflow
 
@@ -47,6 +77,15 @@ cat sample-data/neighbourhood_sample_corpus.txt \
 
 - Bash 4+
 - Standard Unix tools: `awk`, `sort`, `tr`, `wc`
+- No external dependencies — runs on any Linux or macOS system
+
+## Who This Is For
+
+**Beginners:** A self-contained example of a real algorithm implemented with tools available on every Unix system. Each stage is short enough to read in a few minutes. A good first exposure to both TF-IDF and pipeline-oriented programming.
+
+**Experienced data engineers:** A dependency-free baseline for text scoring in constrained environments (minimal Docker images, embedded systems, CI runners). Easy to extend with stopwords, stemming, or n-gram support — see [ROADMAP.md](ROADMAP.md).
+
+**Instructors:** A worked example of map-reduce decomposition without the overhead of a cluster. Each script corresponds directly to a mapper or reducer in the Hadoop Streaming model.
 
 ## Notes
 
